@@ -1,0 +1,15 @@
+Package: gofar
+Type: Package
+Title: Generalized Co-Sparse Factor Regression
+Version: 0.1
+Date: 2019-09-11
+Author: Aditya Mishra [aut, cre], Kun Chen [aut, cre]
+Maintainer: Aditya Mishra <amishra@flatironinstitute.org>
+Description: Divide and conquer approach for estimating low-rank and sparse coefficient matrix in the generalized co-sparse factor regression.
+Depends: R (>= 3.6), stats, utils
+Imports: Rcpp (>= 0.12.9), MASS, magrittr, rrpack
+License: GPL (>= 3.0)
+LazyData: TRUE
+LinkingTo: Rcpp, RcppArmadillo
+NeedsCompilation: yes
+RoxygenNote: 6.1.1
