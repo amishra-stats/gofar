@@ -964,6 +964,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
       Zini = Z, PhiIni = PHI, kappaC0 = kappaco,
       control, misind22, naind22, ndev
     )
+    # print(c(xx$maxit,xx$converge,ndev))
     XC <- X0[, -cIndex] %*% xx$C[-cIndex, ]
     Z0 <- matrix(xx$C[cIndex, ], ncol = q)
     Phi0 <- xx$PHI

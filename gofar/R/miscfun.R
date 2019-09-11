@@ -71,7 +71,7 @@ getNullDev <- function(Y, ofset, familygroup, naind) {
     abc <- scale(as.matrix(Y[, t1]) - as.matrix(ofset[, t1]), center = T, scale = F)
     # class(abc)
     dev <- dev + sum((abc * as.matrix(naind[, t1]))^2)
-    # print(dev)
+    # print(c(dev,sum(ofset)))
   }
   if (length(t2) > 0) {
     m1 <- as.matrix(Y[, t2])
@@ -148,7 +148,7 @@ glmCol <- function(Y, X0, ofset, family, familygroup, q, cIndex) {
 #' @importFrom stats family gaussian binomial poisson
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm glm.fit
 #' @importFrom rrpack rrr
-getScaleGaussian <- function(Y0, X0, familygroup) {
+getScaleGaussian1 = function(Y0, X0, familygroup) {
   if (all(unique(familygroup) == 1:2)) {
     Y <- Y0
     Y[is.na(Y)] <- 0
@@ -162,6 +162,39 @@ getScaleGaussian <- function(Y0, X0, familygroup) {
     return(list(ko = 1, Y = Y0))
   }
 }
+
+
+
+#' Suitably scale gaussian response for unit variance
+#'
+#' @param Y0 Multivariate response matrix
+#' @param X0 design matrix
+#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+#' @useDynLib gofar
+#' @import magrittr
+#' @importFrom stats family gaussian binomial poisson
+#' @importFrom stats coef sd glm.control dbinom dnorm dpois glm glm.fit
+#' @importFrom glmnet cv.glmnet
+getScaleGaussian = function(Yt, X0, familygroup) {
+  if (all(unique(familygroup) == 1:2)) {
+    Ys = Yt[, familygroup == 1]
+    mx <- rep(0,ncol(Ys))
+    for (i in 1:ncol(Ys)) {
+      qqq <- !is.na(Ys[, i])
+      cv <- glmnet::cv.glmnet(X0[qqq,-1],Ys[qqq,i],family="gaussian",
+                              standardize = F,intercept=T,
+                              nfold=10,nlambda = 20,
+                              alpha=1, maxit = 10000)
+      mx[i] <- sd(Ys[,i] - X0%*%as.vector(coef(cv)))
+    }
+    mx = min(mx)
+    Yt[, familygroup == 1] <- Yt[, familygroup == 1] / mx
+    return(list(ko = mx, Y = Yt))
+  } else {
+    return(list(ko = 1, Y = Yt))
+  }
+}
+
 
 #' Rescale gaussian response
 #'
