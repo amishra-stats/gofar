@@ -696,7 +696,8 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
   ind <- order(D, decreasing = T)
   ft1 <- list(
     fit = fit.nlayer, C = U %*% (D * t(V)), Z = Z, Phi = PHI,
-    U = U[, ind], V = V[, ind], D = D[ind],
+    U = matrix(U[, ind], ncol = sum(ind)),
+    V = matrix(V[, ind], ncol = sum(ind)), D = D[ind],
     lam = lamSel, familygroup = familygroup
   )
   if (all(unique(familygroup) == 1:2)) {
@@ -1121,12 +1122,13 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     # totTime <- totTime + ExcutTimepath[ind.select, k]
 
     if (D[k] == 0) {
-      U <- U[, 1:(k - 1)]
-      V <- V[, 1:(k - 1)]
+      U <- matrix(U[, 1:(k - 1)], ncol = sum(k - 1))
+      V <- matrix(V[, 1:(k - 1)], ncol = sum(k - 1))
       D <- D[1:(k - 1)]
       lamSel <- lamSel[1:(k - 1)]
       break
     }
+
 
     Ck <- D[k] * tcrossprod(U[, k], V[, k])
     PHI <- fit.layer$phipath[, l.mean]
@@ -1154,6 +1156,4 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     ft1 <- updateFitObject(ft1, mx)
   }
   return(ft1)
-  # ,nfold = fit.nfold))
-  # return(list(fit.nlayer=fit.nlayer, dev = dev))
 }
