@@ -699,7 +699,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
     U = U[, ind], V = V[, ind], D = D[ind],
     lam = lamSel, familygroup = familygroup
   )
-  if (mx != 1) {
+  if (all(unique(familygroup) == 1:2)) {
     ft1 <- updateFitObject(ft1, mx)
   }
   return(ft1)
@@ -1150,7 +1150,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     U = U, V = V, D = D,
     lam = lamSel, familygroup = familygroup
   )
-  if (mx != 1) {
+  if (all(unique(familygroup) == 1:2)) {
     ft1 <- updateFitObject(ft1, mx)
   }
   return(ft1)

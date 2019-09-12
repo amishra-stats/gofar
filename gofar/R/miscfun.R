@@ -126,8 +126,7 @@ glmCol <- function(Y, X0, ofset, family, familygroup, q, cIndex) {
     ft <- glm.fit(X0[qqq, cIndex], Y[qqq, i],
                   family = family[[familygroup[i]]],
                   offset = ofset[qqq, i], intercept = F,
-                  control = glm.control(maxit = 5000)
-    )
+                  control = glm.control(maxit = 5000))
     Z[, i] <- ft$coefficients
     PHI[i] <- ifelse(familygroup[i] == 1,
                      sum(residuals(ft)^2) / df.residual(ft), 1
@@ -156,7 +155,7 @@ getScaleGaussian1 = function(Y0, X0, familygroup) {
     res <- Y0[, familygroup == 1] - X0 %*% ft$coef
     mx <- min(apply(res, 2, sd, na.rm = T))
     Y2 <- Y0
-    Y2[, familygroup == 1] <- Y2[, familygroup == 1] / mx
+    Y2[, familygroup == 1] <- t(t(Y2[, familygroup == 1]) / mx)
     return(list(ko = mx, Y = Y2))
   } else {
     return(list(ko = 1, Y = Y0))
@@ -167,7 +166,7 @@ getScaleGaussian1 = function(Y0, X0, familygroup) {
 
 #' Suitably scale gaussian response for unit variance
 #'
-#' @param Y0 Multivariate response matrix
+#' @param Yt Multivariate response matrix
 #' @param X0 design matrix
 #' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
 #' @useDynLib gofar
@@ -181,14 +180,21 @@ getScaleGaussian = function(Yt, X0, familygroup) {
     mx <- rep(0,ncol(Ys))
     for (i in 1:ncol(Ys)) {
       qqq <- !is.na(Ys[, i])
-      cv <- glmnet::cv.glmnet(X0[qqq,-1],Ys[qqq,i],family="gaussian",
-                              standardize = F,intercept=T,
-                              nfold=10,nlambda = 20,
-                              alpha=1, maxit = 10000)
-      mx[i] <- sd(Ys[,i] - X0%*%as.vector(coef(cv)))
+      cvcoef <- rep(0,ncol(X0))
+      tryCatch({
+        cvcoef <- as.vector(coef(glmnet::cv.glmnet(X0[qqq,-1],Ys[qqq,i],
+                                                   family="gaussian",
+                                                   standardize = F,intercept=T,
+                                                   nfold=5,nlambda = 20,
+                                                   alpha=1, maxit = 10000)))
+      },
+      error=function(error_message) {
+        return(NA)
+      })
+      mx[i] <- sd(Ys[qqq,i] - X0[qqq,]%*%cvcoef)
     }
-    mx = min(mx)
-    Yt[, familygroup == 1] <- Yt[, familygroup == 1] / mx
+    # mx = min(mx)
+    Yt[, familygroup == 1] <- t(t(Ys) / mx)
     return(list(ko = mx, Y = Yt))
   } else {
     return(list(ko = 1, Y = Yt))
@@ -205,12 +211,13 @@ getScaleGaussian = function(Yt, X0, familygroup) {
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm
 updateFitObject <- function(fit, mx) {
   # fit=fit.seq2
+  qq <- fit$familygroup == 1
   vx <- fit$V
-  vx[fit$familygroup == 1, ] <- vx[fit$familygroup == 1, ] * mx
+  vx[qq, ] <- diag(mx,nrow = sum(qq)) %*% vx[qq, ]
   fit$V <- t(t(vx) / sqrt(colSums((vx)^2)))
   fit$D <- fit$D * sqrt(colSums((vx)^2))
-  fit$Phi[fit$familygroup == 1] <- (mx^2) * fit$Phi[fit$familygroup == 1]
-  fit$Z[, fit$familygroup == 1] <- mx * fit$Z[, fit$familygroup == 1]
+  fit$Phi[qq] <- (mx^2) * fit$Phi[qq]
+  fit$Z[, qq] <-  fit$Z[, qq] %*%diag(mx,nrow = sum(qq))
   fit$C <- fit$U %*% (fit$D * t(fit$V))
   return(fit)
 }

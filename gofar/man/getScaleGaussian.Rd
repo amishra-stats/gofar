@@ -7,11 +7,11 @@
 getScaleGaussian(Yt, X0, familygroup)
 }
 \arguments{
+\item{Yt}{Multivariate response matrix}
+
 \item{X0}{design matrix}
 
 \item{familygroup}{indicator {1,2,3} for {gaussian, binary, poisson}}
-
-\item{Y0}{Multivariate response matrix}
 }
 \description{
 Suitably scale gaussian response for unit variance
