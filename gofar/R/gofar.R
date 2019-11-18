@@ -1,6 +1,6 @@
 #' Default control parameters for Generalized co-sparse factor regresion
 #'
-#' Control parameters for gsecure and geecure
+#' Control parameters for GOFAR(S) and GOFAR(P)
 #'
 #' @param lamMaxFac a multiplier of calculated lambda_max
 #' @param lamMinFac a multiplier of determing lambda_min as a fraction of lambda_max
@@ -18,10 +18,8 @@
 #' @return a list of controling parameter.
 #' @export
 #' @examples
-#' \dontrun{
-#' # load library
-#' library(gofar)
-#' # control variable for GSeCURE and GEeCURE
+#' \donttest{
+#' # control variable for GOFAR(S) and GOFAR(P)
 #' control <- gofar_control()
 #' }
 #' @useDynLib gofar
@@ -68,10 +66,7 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
 #' @importFrom stats rnorm rbinom rpois family gaussian binomial poisson
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm
 #' @examples
-#' \dontrun{
-#' #' # load library
-#' library(gofar)
-#' #
+#' \donttest{
 #' ## Model specification:
 #' SD <- 123
 #' set.seed(SD)
@@ -263,7 +258,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 
 
 
-#' Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GEeCURE) using k-fold crossvalidation
+#' Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GOFAR(P)) using k-fold crossvalidation
 #'
 #' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Exclusive extraction
 #'
@@ -277,7 +272,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' @param ofset offset matrix specified
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of fold for cross-validation
-#' @aliases geecure
+#' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -288,9 +283,9 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #'   \item{lam}{selected lambda values based on the chosen information criterion}
 #'   \item{lampath}{sequences of lambda values used in model fitting. In each sequential unit-rank estimation step,
 #'   a sequence of length nlambda is first generated between (lamMax*lamMaxFac, lamMax*lamMaxFac*lamMinFac) equally
-#'   spaced on the log scale, in which lamMax is estimated and the other parameters are specified in gsecure.control.
+#'   spaced on the log scale, in which lamMax is estimated and the other parameters are specified in gofar_control.
 #'   The model fitting starts from the largest lambda and stops when the maximum proportion of nonzero elements is reached in
-#'   either u or v, as specified by spU and spV in gsecure.control.}
+#'   either u or v, as specified by spU and spV in gofar_control.}
 #'   \item{IC}{values of information criteria}
 #'   \item{Upath}{solution path of U}
 #'   \item{Dpath}{solution path of D}
@@ -301,10 +296,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' @import magrittr
 #' @useDynLib gofar
 #' @examples
-#' \dontrun{
-#' # load library
-#' library(gofar)
-#' #
+#' \donttest{
 #' ## Model specification:
 #' SD <- 123
 #' set.seed(SD)
@@ -430,7 +422,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' control$spU <- 50 / p
 #' control$spV <- 25 / q
 #' control$maxit <- 1000
-#' # Model fitting: GEeCURE (full data)
+#' # Model fitting: GOFAR(P) (full data)
 #' set.seed(SD)
 #' rank.est <- 5
 #' fit.eea <- gofar_p(Y, X,
@@ -439,7 +431,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #'   control = control, nfold = 5
 #' )
 #'
-#' # Model fitting: GEeCURE (missing data)
+#' # Model fitting: GOFAR(P) (missing data)
 #' set.seed(SD)
 #' rank.est <- 5
 #' fit.eea.m <- gofar_p(Ym, X,
@@ -452,7 +444,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' Mishra, A., Dey, D., Chen, K. (2019) \emph{ Generalized co-sparse factor regression, In prepration}
 gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
                        familygroup = NULL, cIndex = NULL, ofset = NULL,
-                       control = list(), nfold = 5) {
+                       control = list(), nfold = 5, PATH = FALSE) {
   # Yt = Y;nrank =rank.est; nlambda = nlam; cIndex = NULL; ofset=NULL;  nfold = 5
   cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -540,7 +532,9 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
       wv = abs(V0[, k])^-control$gamma0
     )
     ## define ofset
-    C0 <- tcrossprod(tcrossprod(U0[, -k], diag(D0[-k], nrow = nrank - 1)), V0[, -k])
+    C0 <- tcrossprod(tcrossprod(U0[, -k],
+                                diag(D0[-k],
+                                     nrow = nrank - 1)), V0[, -k])
     ofset1 <- tcrossprod(X0[, -cIndex], t(C0))
     lambda.max <- get.lam.max2(Y, X, familygroup, ofset1)
     kappaco <- getKappaC0(X0, familygroup)
@@ -555,7 +549,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
     fitT <- vector("list", nfold)
     for (ifold in 1:nfold) { # ifold=1
-      print(ifold)
+      cat('Fold ', ifold, '\n')
       ind.test <- ind.nna[which(ID == ifold)]
       Yte <- Y
       Yte[-ind.test] <- NA
@@ -633,7 +627,6 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
     lamS <- fitF$lamseq[l.mean]
 
 
-
     Yf <- Y
     zerosol <- glmCol(Yf, X0, ofset1, family, familygroup, q, cIndex)
 
@@ -642,44 +635,77 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
     Yf[is.na(Yf)] <- 0
     ndev <- getNullDev(Yf, ofset1, familygroup, naind1)
 
-    fit.nlayer[[k]] <- fit.layer <- gcure_cpp_miss(Yf, X0,
-      nlam = nlambda,
-      cindex = cIndex,
-      ofset = ofset1, familygroup,
-      initw = initW,
-      Dini = D0[k],
-      Zini = Z, PhiIni = PHI,
-      Uini = as.matrix(U0[, k]),
-      Vini = as.matrix(V0[, k]),
-      kappaC0 = kappaco,
-      lmax = lambda.max,
-      control, misind,
-      naind1, ndev, 0, zerosol,
-      control$maxit,
-      control$epsilon
-    )
-    fit.nlayer[[k]]$dev <- dev
-    fit.nlayer[[k]]$lamS <- lamS
 
-    l.mean <- which(fit.layer$lamKpath == lamS)
-    if (length(l.mean) == 0) {
+    if ( PATH ) {
+      fit.nlayer[[k]] <- fit.layer <- gcure_cpp_miss(Yf,X0,
+                                                     nlam = nlambda,
+                                                     cindex=cIndex,
+                                                     ofset = ofset1,
+                                                     familygroup,
+                                                     initw=initW,
+                                                     Dini = D0[k],
+                                                     Zini = Z, PhiIni=PHI,
+                                                     Uini = as.matrix(U0[,k]),
+                                                     Vini = as.matrix(V0[,k]),
+                                                     kappaC0 = kappaco,
+                                                     lmax = lambda.max,
+                                                     control,misind,
+                                                     naind1,ndev,0,zerosol,
+                                                     control$maxit,
+                                                     control$epsilon)
+      l.mean <- which(fit.layer$lamKpath==lamS)
+      if(length(l.mean)==0){
+        l.mean <- 1;
+      }
+    } else {
+      control1 <- control
+      control1$lamMinFac <- 1
+      fit.nlayer[[k]] <- fit.layer <- gcure_cpp_miss(Yf, X0,
+                                                     nlam = 1,
+                                                     cindex = cIndex,
+                                                     ofset = ofset1, familygroup,
+                                                     initw = initW,
+                                                     Dini = D0[k],
+                                                     Zini = Z, PhiIni = PHI,
+                                                     Uini = as.matrix(U0[, k]),
+                                                     Vini = as.matrix(V0[, k]),
+                                                     kappaC0 = kappaco,
+                                                     # lmax = lambda.max,
+                                                     lmax = lamS,
+                                                     control1, misind,
+                                                     naind1, ndev, 0, zerosol,
+                                                     control$maxit,
+                                                     control$epsilon)
       l.mean <- 1
     }
+
+    fit.nlayer[[k]]$initw <- initW
+    fit.nlayer[[k]]$lamseq <- fitF$lamseq   ## save sequence of lambda path
+    fit.nlayer[[k]]$dev <- dev
+    fit.nlayer[[k]]$lamS <- lamS
 
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
     D[k] <- fit.layer$dkpath[l.mean, 1]
+    cat(D[k], '\n')
     lamSel[k] <- fit.layer$lamKpath[l.mean, 1]
-    print(D[k])
 
     Ck <- D[k] * tcrossprod(U[, k], V[, k])
     PHI <- fit.layer$phipath[, l.mean]
     if (pz == 0) {
-      Z[1, ] <- drop(fit.layer$zpath)[, l.mean]
+      Z[1, ] <- drop(fit.layer$zpath[, ,l.mean])
     } else {
       Z <- fit.layer$zpath[, , l.mean]
     }
   }
+
+
+
+
+
+
+
+
 
 
 
@@ -688,6 +714,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
   U <- matrix(U[, ind], ncol = sum(ind))
   V <- matrix(V[, ind], ncol = sum(ind))
   D <- D[ind]
+  fit.nlayer <- fit.nlayer[ind]
   if (sum(ind) == 0) {
     U <- matrix(rep(0, p), ncol = 1)
     V <- matrix(rep(0, q), ncol = 1)
@@ -696,22 +723,28 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
   ind <- order(D, decreasing = T)
   ft1 <- list(
     fit = fit.nlayer, C = U %*% (D * t(V)), Z = Z, Phi = PHI,
-    U = matrix(U[, ind], ncol = sum(ind)),
-    V = matrix(V[, ind], ncol = sum(ind)), D = D[ind],
+    U = matrix(U[, ind], ncol = length(ind)),
+    V = matrix(V[, ind], ncol = length(ind)), D = D[ind],
     lam = lamSel, familygroup = familygroup
   )
   if (all(unique(familygroup) == 1:2)) {
     ft1 <- updateFitObject(ft1, mx)
   }
   return(ft1)
-  # ,nfold = fit.nfold))
 }
 
 
 
 
 
-#' Generalize Sequential factor extraction via co-sparse unit-rank estimation (GSeCURE) using k-fold crossvalidation
+
+
+
+
+
+
+
+#' Generalize Sequential factor extraction via co-sparse unit-rank estimation (GOFAR(S)) using k-fold crossvalidation
 #'
 #' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Sequential
 #'
@@ -725,7 +758,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' @param family set of family [gaussian, bernoulli, possion]
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
-#' @aliases gsecure
+#' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
@@ -739,10 +772,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' @export
 #' @useDynLib gofar
 #' @examples
-#' \dontrun{
-#' #' # load library
-#' library(gofar)
-#' #
+#' \donttest{
 #' ## Model specification:
 #' SD <- 123
 #' set.seed(SD)
@@ -871,7 +901,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #'
 #'
 #'
-#' # Model fitting: GSeCURE (full data)
+#' # Model fitting: GOFAR(S) (full data)
 #' set.seed(SD)
 #' rank.est <- 5
 #' fit.seq <- gofar_s(Y, X,
@@ -881,7 +911,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' )
 #'
 #'
-#' # Model fitting: GSeCURE (missing data)
+#' # Model fitting: GOFAR(S) (missing data)
 #' set.seed(SD)
 #' rank.est <- 5
 #' fit.seq.m <- gofar_s(Ym, X,
@@ -893,8 +923,8 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' @references
 #'  Mishra, A., Dey, D., Chen, K. (2019) \emph{ Generalized co-sparse factor regression, In prepration}
 gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
-                       familygroup = NULL, cIndex = NULL, ofset = NULL,
-                       control = list(), nfold = 5) {
+                    familygroup = NULL, cIndex = NULL, ofset = NULL,
+                    control = list(), nfold = 5, PATH = FALSE) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
@@ -956,14 +986,14 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     ## extract unpelized unit rank and estimate and use it for weight construction:
     kappaco <- getKappaC0(X0, familygroup)
     ndev <- getNullDev(Yf2, ofset, familygroup, naind22)
-    # save(list=ls(),file = 'aditya1.rda')
+
 
 
     xx <- gcure_cpp_init2(Yf2, X0, 1,
-      cindex = cIndex,
-      ofset = ofset, familygroup,
-      Zini = Z, PhiIni = PHI, kappaC0 = kappaco,
-      control, misind22, naind22, ndev
+                          cindex = cIndex,
+                          ofset = ofset, familygroup,
+                          Zini = Z, PhiIni = PHI, kappaC0 = kappaco,
+                          control, misind22, naind22, ndev
     )
     # print(c(xx$maxit,xx$converge,ndev))
     XC <- X0[, -cIndex] %*% xx$C[-cIndex, ]
@@ -980,9 +1010,9 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
       wv = abs(xx$V)^-control$gamma0
     )
     lambda.max <- get.lam.max2(Y, X, familygroup, ofset)
-    print(xx$D)
+    cat(xx$D, '\n')
     cat("Cross validation:", k, "\n")
-
+    # save(list=ls(),file = 'aditya1.rda')
 
     ## store the deviance of the test data
     dev <- matrix(NA, nfold, nlambda)
@@ -993,7 +1023,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
     fitT <- vector("list", nfold)
     for (ifold in 1:nfold) { # ifold=1
-      print(ifold)
+      cat('Fold ', ifold, '\n')
       ind.test <- ind.nna[which(ID == ifold)]
       Yte <- Y
       Yte[-ind.test] <- NA
@@ -1007,15 +1037,15 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
       ndev <- getNullDev(Ytr, ofset, familygroup, naind)
 
       fitT[[ifold]] <- gcure_cpp_miss(Ytr, X0,
-        nlam = nlambda,
-        cindex = cIndex,
-        ofset = ofset, familygroup, initw = initW,
-        Dini = xx$D, Zini = Z0, PhiIni = Phi0,
-        Uini = xx$U, Vini = xx$V,
-        kappaC0 = kappaco, lmax = lambda.max,
-        control, misind,
-        naind, ndev, 0, zerosol,
-        control$maxit, control$epsilon
+                                      nlam = nlambda,
+                                      cindex = cIndex,
+                                      ofset = ofset, familygroup, initw = initW,
+                                      Dini = xx$D, Zini = Z0, PhiIni = Phi0,
+                                      Uini = xx$U, Vini = xx$V,
+                                      kappaC0 = kappaco, lmax = lambda.max,
+                                      control, misind,
+                                      naind, ndev, 0, zerosol,
+                                      control$maxit, control$epsilon
       )
 
 
@@ -1050,21 +1080,12 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
           tec[ifold] <- tttval[3]
         }
       }
-
-      # print(dev[ifold,] )
-      # print(sum((!is.na(Yte))))
     }
-    # save(list = ls(), file = "aditya1.rda")
 
-    # for(ifold in 1:nfold){
-    #   mkind <- min(which(!is.na(dev[ifold,])))
-    #   dev[ifold,1:(mkind-1)] <- dev[ifold,mkind]
-    # }
+    #save(list = ls(), file = "aditya2.rda")
 
 
     fit.nfold[[k]] <- fitT
-    # print(dev)
-    # select lambda
     dev.mean <- colMeans(dev, na.rm = FALSE)
     sderr <- sqrt(apply(sdcal, 2, sum, na.rm = FALSE) / (nfold * sum(tec - 1)))
     l.mean <- which.min(dev.mean)
@@ -1072,12 +1093,9 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
       l.mean <- min(which(dev.mean <= (dev.mean[l.mean])))
     } else {
       l.mean <- min(which(dev.mean <= (dev.mean[l.mean] +
-        control$se1 * sderr[l.mean])))
+                                         control$se1 * sderr[l.mean])))
     }
     lamS <- fitF$lamseq[l.mean]
-
-
-
 
 
     Yf <- Y
@@ -1088,67 +1106,87 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     Yf[is.na(Yf)] <- 0
     ndev <- getNullDev(Yf, ofset, familygroup, naind)
 
-    fit.nlayer[[k]] <- fit.layer <- gcure_cpp_miss(Yf, X0,
-      nlam = nlambda,
-      cindex = cIndex,
-      ofset = ofset, familygroup,
-      initw = initW, Dini = xx$D,
-      Zini = Z0, PhiIni = Phi0,
-      Uini = xx$U, Vini = xx$V,
-      kappaC0 = kappaco,
-      lmax = lambda.max,
-      control, misind,
-      naind, ndev, 0, zerosol,
-      control$maxit,
-      control$epsilon
-    )
-    fit.nlayer[[k]]$dev <- dev
-    fit.nlayer[[k]]$lamS <- lamS
-
-    l.mean <- which(fit.layer$lamKpath == lamS)
-    if (length(l.mean) == 0) {
+    if ( PATH ) {
+      fit.nlayer[[k]] <- fit.layer <- gcure_cpp_miss(Yf,X0,
+                                                     nlam = nlambda,
+                                                     cindex = cIndex,
+                                                     ofset = ofset,
+                                                     familygroup,
+                                                     initw = initW,
+                                                     Dini = xx$D,
+                                                     Zini = Z0 ,
+                                                     PhiIni = Phi0,
+                                                     Uini = xx$U,
+                                                     Vini = xx$V,
+                                                     kappaC0 = kappaco,
+                                                     lmax = lambda.max,
+                                                     control,misind,
+                                                     naind,ndev,0,zerosol,
+                                                     control$maxit,
+                                                     control$epsilon)
+      l.mean <- which(fit.layer$lamKpath == lamS)
+      if ( length(l.mean) == 0) {
+        l.mean <- 1;
+      }
+    } else {
+      control1 <- control
+      control1$lamMinFac <- 1
+      fit.nlayer[[k]] <- fit.layer <- gcure_cpp_miss(Yf, X0,
+                                                     nlam = 1,
+                                                     cindex = cIndex,
+                                                     ofset = ofset,
+                                                     familygroup,
+                                                     initw = initW,
+                                                     Dini = xx$D,
+                                                     Zini = Z0,
+                                                     PhiIni = Phi0,
+                                                     Uini = xx$U,
+                                                     Vini = xx$V,
+                                                     kappaC0 = kappaco,
+                                                     # lmax = lambda.max,
+                                                     lmax = lamS,
+                                                     control1, misind,
+                                                     naind, ndev, 0,
+                                                     zerosol,
+                                                     control$maxit,
+                                                     control$epsilon)
       l.mean <- 1
     }
-    # print(fit.layer$lamKpath)
-    # print(lamS)
+
+    ## Same as before
+    fit.nlayer[[k]]$initw <- initW
+    fit.nlayer[[k]]$lamseq <- fitF$lamseq   ## save sequence of lambda path
+    fit.nlayer[[k]]$dev <- dev
+    fit.nlayer[[k]]$lamS <- lamS
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
     D[k] <- fit.layer$dkpath[l.mean, 1]
-    print(D[k])
+    cat(D[k], '\n')
     lamSel[k] <- fit.layer$lamKpath[l.mean, 1]
 
-    # save(list = ls(),file = 'aditya2.rda')
-    # print(lamS - lamSel[k])
-    # totTime <- totTime + ExcutTimepath[ind.select, k]
-
     if (D[k] == 0) {
-      U <- matrix(U[, 1:(k - 1)], ncol = sum(k - 1))
-      V <- matrix(V[, 1:(k - 1)], ncol = sum(k - 1))
+      U <- matrix(U[, 1:(k - 1)], ncol = k - 1)
+      V <- matrix(V[, 1:(k - 1)], ncol = k - 1)
       D <- D[1:(k - 1)]
       lamSel <- lamSel[1:(k - 1)]
       break
     }
 
-
     Ck <- D[k] * tcrossprod(U[, k], V[, k])
     PHI <- fit.layer$phipath[, l.mean]
     if (pz == 0) {
-      Z[1, ] <- drop(fit.layer$zpath)[, l.mean]
+      Z[1, ] <-  drop(fit.layer$zpath[, ,l.mean])
     } else {
       Z <- fit.layer$zpath[, , l.mean]
     }
-
     ofset <- ofset + crossprod(t(X0[, -cIndex]), Ck) # crossprod(t(X), Ck)
   }
-
-
 
   cat("Estimated rank =", sum(D != 0), "\n")
   if (sum(D != 0) == nrank) {
     cat("Increase nrank value!")
   }
-  ft1 <- list(
-    fit = fit.nlayer, C = U %*% (D * t(V)), Z = Z, Phi = PHI,
+  ft1 <- list(fit = fit.nlayer, C = U %*% (D * t(V)), Z = Z, Phi = PHI,
     U = U, V = V, D = D,
     lam = lamSel, familygroup = familygroup
   )
@@ -1157,3 +1195,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
   }
   return(ft1)
 }
+
+
+
+

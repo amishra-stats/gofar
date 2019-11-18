@@ -2,11 +2,11 @@
 % Please edit documentation in R/gofar.R
 \name{gofar_s}
 \alias{gofar_s}
-\alias{gsecure}
-\title{Generalize Sequential factor extraction via co-sparse unit-rank estimation (GSeCURE) using k-fold crossvalidation}
+\title{Generalize Sequential factor extraction via co-sparse unit-rank estimation (GOFAR(S)) using k-fold crossvalidation}
 \usage{
 gofar_s(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
-  cIndex = NULL, ofset = NULL, control = list(), nfold = 5)
+  cIndex = NULL, ofset = NULL, control = list(), nfold = 5,
+  PATH = FALSE)
 }
 \arguments{
 \item{Yt}{response matrix}
@@ -28,6 +28,8 @@ gofar_s(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
 \item{control}{a list of internal parameters controlling the model fitting}
 
 \item{nfold}{number of folds in k-fold crossvalidation}
+
+\item{PATH}{TRUE/FALSE for generating solution path of sequential estimate after cross-validation step}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}
@@ -44,10 +46,7 @@ gofar_s(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
 Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Sequential
 }
 \examples{
-\dontrun{
-#' # load library
-library(gofar)
-#
+\donttest{
 ## Model specification:
 SD <- 123
 set.seed(SD)
@@ -176,7 +175,7 @@ control$maxit <- 1000
 
 
 
-# Model fitting: GSeCURE (full data)
+# Model fitting: GOFAR(S) (full data)
 set.seed(SD)
 rank.est <- 5
 fit.seq <- gofar_s(Y, X,
@@ -186,7 +185,7 @@ fit.seq <- gofar_s(Y, X,
 )
 
 
-# Model fitting: GSeCURE (missing data)
+# Model fitting: GOFAR(S) (missing data)
 set.seed(SD)
 rank.est <- 5
 fit.seq.m <- gofar_s(Ym, X,

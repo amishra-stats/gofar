@@ -2,11 +2,11 @@
 % Please edit documentation in R/gofar.R
 \name{gofar_p}
 \alias{gofar_p}
-\alias{geecure}
-\title{Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GEeCURE) using k-fold crossvalidation}
+\title{Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GOFAR(P)) using k-fold crossvalidation}
 \usage{
 gofar_p(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
-  cIndex = NULL, ofset = NULL, control = list(), nfold = 5)
+  cIndex = NULL, ofset = NULL, control = list(), nfold = 5,
+  PATH = FALSE)
 }
 \arguments{
 \item{Yt}{response matrix}
@@ -28,6 +28,8 @@ gofar_p(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
 \item{control}{a list of internal parameters controlling the model fitting}
 
 \item{nfold}{number of fold for cross-validation}
+
+\item{PATH}{TRUE/FALSE for generating solution path of sequential estimate after cross-validation step}
 }
 \value{
 \item{C}{estimated coefficient matrix; based on GIC}
@@ -39,9 +41,9 @@ gofar_p(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
   \item{lam}{selected lambda values based on the chosen information criterion}
   \item{lampath}{sequences of lambda values used in model fitting. In each sequential unit-rank estimation step,
   a sequence of length nlambda is first generated between (lamMax*lamMaxFac, lamMax*lamMaxFac*lamMinFac) equally
-  spaced on the log scale, in which lamMax is estimated and the other parameters are specified in gsecure.control.
+  spaced on the log scale, in which lamMax is estimated and the other parameters are specified in gofar_control.
   The model fitting starts from the largest lambda and stops when the maximum proportion of nonzero elements is reached in
-  either u or v, as specified by spU and spV in gsecure.control.}
+  either u or v, as specified by spU and spV in gofar_control.}
   \item{IC}{values of information criteria}
   \item{Upath}{solution path of U}
   \item{Dpath}{solution path of D}
@@ -53,10 +55,7 @@ gofar_p(Yt, X, nrank = 3, nlambda = 40, family, familygroup = NULL,
 Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Exclusive extraction
 }
 \examples{
-\dontrun{
-# load library
-library(gofar)
-#
+\donttest{
 ## Model specification:
 SD <- 123
 set.seed(SD)
@@ -182,7 +181,7 @@ control$epsilon <- 1e-7
 control$spU <- 50 / p
 control$spV <- 25 / q
 control$maxit <- 1000
-# Model fitting: GEeCURE (full data)
+# Model fitting: GOFAR(P) (full data)
 set.seed(SD)
 rank.est <- 5
 fit.eea <- gofar_p(Y, X,
@@ -191,7 +190,7 @@ fit.eea <- gofar_p(Y, X,
   control = control, nfold = 5
 )
 
-# Model fitting: GEeCURE (missing data)
+# Model fitting: GOFAR(P) (missing data)
 set.seed(SD)
 rank.est <- 5
 fit.eea.m <- gofar_p(Ym, X,

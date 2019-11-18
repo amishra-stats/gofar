@@ -2,10 +2,10 @@
 
 
 
-#' Obtain scaling constant for monotone decreasing G-CURE problem
-#'
-#' @param X0 Design matrix
-#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+# Obtain scaling constant for monotone decreasing G-CURE problem
+#
+# @param X0 Design matrix
+# @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson
@@ -23,12 +23,12 @@ getKappaC0 = function(X0,familygroup){
 
 
 
-#' Obtain lambda_max for for generating sequence of tuning parameter in G-CURE problem
-#'
-#' @param X Design matrix
-#' @param Y Multivariate response matrix
-#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
-#' @param offset offset term matrix
+# Obtain lambda_max for for generating sequence of tuning parameter in G-CURE problem
+#
+# @param X Design matrix
+# @param Y Multivariate response matrix
+# @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+# @param offset offset term matrix
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson
@@ -52,12 +52,12 @@ get.lam.max2 = function(Y, X,familygroup,offset){
 
 
 
-#' Obtain null deviance to utilize in convergence
-#'
-#' @param Y Multivariate response matrix
-#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
-#' @param ofset offset matrix
-#' @param naind index of missing entries
+# Obtain null deviance to utilize in convergence
+#
+# @param Y Multivariate response matrix
+# @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+# @param ofset offset matrix
+# @param naind index of missing entries
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson
@@ -105,15 +105,15 @@ getNullDev <- function(Y, ofset, familygroup, naind) {
 
 
 
-#' Fit glm Columnwise on the control variable
-#'
-#' @param Y Multivariate response matrix
-#' @param X0 design matrix
-#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
-#' @param ofset offset  matrix
-#' @param family {gaussian, Bernouli, poisson}
-#' @param q number of outcomes
-#' @param cIndex index of control variable in X0
+# Fit glm Columnwise on the control variable
+#
+# @param Y Multivariate response matrix
+# @param X0 design matrix
+# @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+# @param ofset offset  matrix
+# @param family {gaussian, Bernouli, poisson}
+# @param q number of outcomes
+# @param cIndex index of control variable in X0
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson df.residual residuals
@@ -137,17 +137,17 @@ glmCol <- function(Y, X0, ofset, family, familygroup, q, cIndex) {
 }
 
 
-#' Suitably scale gaussian response for unit variance
-#'
-#' @param Y0 Multivariate response matrix
-#' @param X0 design matrix
-#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+# Suitably scale gaussian response for unit variance
+#
+# @param Y0 Multivariate response matrix
+# @param X0 design matrix
+# @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm glm.fit
 #' @importFrom rrpack rrr
-getScaleGaussian1 = function(Y0, X0, familygroup) {
+getScaleGaussian = function(Y0, X0, familygroup) {
   if (all(unique(familygroup) == 1:2)) {
     Y <- Y0
     Y[is.na(Y)] <- 0
@@ -164,17 +164,18 @@ getScaleGaussian1 = function(Y0, X0, familygroup) {
 
 
 
-#' Suitably scale gaussian response for unit variance
-#'
-#' @param Yt Multivariate response matrix
-#' @param X0 design matrix
-#' @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
+
+# Suitably scale gaussian response for unit variance
+#
+# @param Yt Multivariate response matrix
+# @param X0 design matrix
+# @param familygroup indicator {1,2,3} for {gaussian, binary, poisson}
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm glm.fit
 #' @importFrom glmnet cv.glmnet
-getScaleGaussian = function(Yt, X0, familygroup) {
+getScaleGaussian1 = function(Yt, X0, familygroup) {
   if (all(unique(familygroup) == 1:2)) {
     Ys = Yt[, familygroup == 1]
     mx <- rep(0,ncol(Ys))
@@ -202,10 +203,10 @@ getScaleGaussian = function(Yt, X0, familygroup) {
 }
 
 
-#' Rescale gaussian response
-#'
-#' @param fit fitted object from gsecure and geecure
-#' @param mx scaling value
+# Rescale gaussian response
+#
+# @param fit fitted object from gsecure and geecure
+# @param mx scaling value
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm
@@ -224,12 +225,12 @@ updateFitObject <- function(fit, mx) {
 
 
 
-#' loglikelihood of the observation
-#'
-#' @param Y outcome variables
-#' @param MU natural parameter matrix
-#' @param Sigma dispersion parameter for gacussian
-#' @param family gaussian binomial poisson
+# loglikelihood of the observation
+#
+# @param Y outcome variables
+# @param MU natural parameter matrix
+# @param Sigma dispersion parameter for gacussian
+# @param family gaussian binomial poisson
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm
 logLikehood <- function(Y, MU, Sigma = 1, family) {
   switch(family,
@@ -243,12 +244,12 @@ logLikehood <- function(Y, MU, Sigma = 1, family) {
 
 
 
-#' Evaluate of objective function
-#'
-#' @param Y outcome variables
-#' @param mu natural parameter matrix
-#' @param Phi dispersion parameter
-#' @param familygroup gaussian binomial poisson
+# Evaluate of objective function
+#
+# @param Y outcome variables
+# @param mu natural parameter matrix
+# @param Phi dispersion parameter
+# @param familygroup gaussian binomial poisson
 #' @importFrom stats family gaussian binomial poisson
 #' @importFrom stats coef sd glm.control dbinom dnorm dpois glm
 objFun5 <- function(Y, mu, Phi, familygroup) {

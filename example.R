@@ -130,36 +130,27 @@ fit.eea <- gofar_p(Y, X, nrank = rank.est, nlambda = nlam,
 
 # Model fitting: GEeCURE (missing data)
 set.seed(SD)
-rank.est <- 5
+rank.est <- 4
 fit.eea.m <- gofar_p(Ym, X, nrank = rank.est, nlambda = nlam,
                       family = family, familygroup = familygroup, 
                       control = control, nfold = 5)
+                      
 
 
-
-
-
-# Model fitting: GSeCURE (full data)
+# Model fitting: GSeCURE (full data)x
 set.seed(SD)
-rank.est <- 5
+rank.est <- 4
 fit.seq <- gofar_s(Y, X, nrank = rank.est, family = family, 
-                      nlambda = nlam, familygroup = familygroup, 
-                      control = control, nfold = 5)
+                    nlambda = nlam, familygroup = familygroup, 
+                    control = control, nfold = 5)
 
 
 # Model fitting: GSeCURE (missing data)
 set.seed(SD)
-rank.est <- 5
+rank.est <- 4
 fit.seq.m <- gofar_s(Ym, X, nrank = rank.est, family = family, 
                       nlambda = nlam, familygroup = familygroup, 
                       control = control, nfold = 5)
-
-
-
-
-
-
-
 
 
 

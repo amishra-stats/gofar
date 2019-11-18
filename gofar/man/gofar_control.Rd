@@ -40,13 +40,11 @@ gofar_control(maxit = 5000, epsilon = 1e-06, elnetAlpha = 0.95,
 a list of controling parameter.
 }
 \description{
-Control parameters for gsecure and geecure
+Control parameters for GOFAR(S) and GOFAR(P)
 }
 \examples{
-\dontrun{
-# load library
-library(gofar)
-# control variable for GSeCURE and GEeCURE
+\donttest{
+# control variable for GOFAR(S) and GOFAR(P)
 control <- gofar_control()
 }
 }

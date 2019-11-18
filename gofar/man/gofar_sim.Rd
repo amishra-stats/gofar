@@ -32,10 +32,7 @@ gofar_sim(U, D, V, n, Xsigma, C0, familygroup, snr)
 Genertate random samples from a generalize sparse factor regression model
 }
 \examples{
-\dontrun{
-#' # load library
-library(gofar)
-#
+\donttest{
 ## Model specification:
 SD <- 123
 set.seed(SD)
