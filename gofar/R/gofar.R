@@ -683,6 +683,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
     fit.nlayer[[k]]$lamseq <- fitF$lamseq   ## save sequence of lambda path
     fit.nlayer[[k]]$dev <- dev
     fit.nlayer[[k]]$lamS <- lamS
+    fit.nlayer[[k]]$sderr <- sderr
 
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
@@ -1158,6 +1159,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     fit.nlayer[[k]]$lamseq <- fitF$lamseq   ## save sequence of lambda path
     fit.nlayer[[k]]$dev <- dev
     fit.nlayer[[k]]$lamS <- lamS
+    fit.nlayer[[k]]$sderr <- sderr
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
     D[k] <- fit.layer$dkpath[l.mean, 1]
