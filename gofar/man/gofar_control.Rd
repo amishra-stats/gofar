@@ -7,7 +7,7 @@
 gofar_control(maxit = 5000, epsilon = 1e-06, elnetAlpha = 0.95,
   gamma0 = 1, se1 = 1, spU = 0.5, spV = 0.5, lamMaxFac = 1,
   lamMinFac = 1e-06, initmaxit = 2000, initepsilon = 1e-06,
-  equalphi = 1, objI = 1)
+  equalphi = 1, objI = 1, alp = 60)
 }
 \arguments{
 \item{maxit}{maximum iteration for each sequential steps}
@@ -35,6 +35,8 @@ gofar_control(maxit = 5000, epsilon = 1e-06, elnetAlpha = 0.95,
 \item{equalphi}{dispersion parameter for all gaussian outcome equal or not 0/1}
 
 \item{objI}{1 or 0 convergence on the basis of objective function or not}
+
+\item{alp}{scaling factor corresponding to poisson outcomes}
 }
 \value{
 a list of controling parameter.

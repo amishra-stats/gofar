@@ -21,7 +21,7 @@ using namespace Rcpp;
 
 
 // [[Rcpp::export]]
-double getKappaC0zv(arma::mat X, arma::uvec t1, arma::uvec t2, arma::uvec t3){
+double getKappaC0zv(arma::mat X, arma::uvec t1, arma::uvec t2, arma::uvec t3, double alp){
   //arma::uvec t1, arma::uvec t2, arma::uvec t3
   arma::vec s = svd( X);
   // double s = conv_to< double >::from(svds( X, 1) );
@@ -31,7 +31,7 @@ double getKappaC0zv(arma::mat X, arma::uvec t1, arma::uvec t2, arma::uvec t3){
   // arma::uvec t3 = find(familygroup==3);
   if(t1.n_elem>0) tem(0) = s(0);
   if(t2.n_elem>0) tem(1) = 0.5*s(0);
-  if(t3.n_elem>0) tem(2) = 10*s(0);
+  if(t3.n_elem>0) tem(2) = alp*s(0);
   return(tem.max());
 }
 
@@ -454,7 +454,7 @@ Rcpp::List gcure_cpp_miss(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   epsilon = epsilon*ndev;
   // cout << epsilon << std::endl;
   // double gammaC0 = control["gammaC0"];
-  double lmif = control["lamMinFac"];
+  double lmif = control["lamMinFac"], alpx  = control["alp"];
   double lmaf = control["lamMaxFac"];
   double spu = control["spU"], spv = control["spV"];
   double wd =  initw["wd"], gamma0 = control["gamma0"];
@@ -574,20 +574,20 @@ Rcpp::List gcure_cpp_miss(arma::mat Y, arma::mat Xm,int nlam, arma::vec cindex,
   double qg = accu(qc(t1));
   arma::mat facW = alp*wd*(wu*wv.t()),facL;
   arma::mat X2Y = X2.t()*Y,X1Y = X1.t()*Y,xuv(size(Y)),ResN;
-  double kappaC0u, kappaC0v,kappaC0z = getKappaC0zv(X0.cols(cIndex), t1, t2, t3);
+  double kappaC0u, kappaC0v,kappaC0z = getKappaC0zv(X0.cols(cIndex), t1, t2, t3, alpx);
 
   // double ab = getKappaC0zv(X2, t1, t2, t3);
   // kappaC0z = getKappaC0zv(X1, t1, t2, t3);
   arma::vec tv2;
-  kappaC0z = 1*getKappaC0zv(X1, t1, t2, t3);
+  kappaC0z = 1*getKappaC0zv(X1, t1, t2, t3, alpx);
   // kappaC0z = kappaC0;
   kappaC0z = 1*kappaC0z*kappaC0z;
 
-  kappaC0u = 1*getKappaC0zv(X2, t1, t2, t3);
+  kappaC0u = 1*getKappaC0zv(X2, t1, t2, t3, alpx);
   // kappaC0u = kappaC0;
   kappaC0u = 1/(1*kappaC0u*kappaC0u);
 
-  kappaC0v = 1*getKappaC0zv(X0.cols(cIndexC)*(Uini), t1, t2, t3);
+  kappaC0v = 1*getKappaC0zv(X0.cols(cIndexC)*(Uini), t1, t2, t3, alpx);
   // kappaC0v = kappaC0;
   // kappaC0v = 1/(0.5* (double) n);
   kappaC0v = 1/(kappaC0v * kappaC0v);

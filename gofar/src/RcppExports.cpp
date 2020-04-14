@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // getKappaC0zv
-double getKappaC0zv(arma::mat X, arma::uvec t1, arma::uvec t2, arma::uvec t3);
-RcppExport SEXP _gofar_getKappaC0zv(SEXP XSEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP t3SEXP) {
+double getKappaC0zv(arma::mat X, arma::uvec t1, arma::uvec t2, arma::uvec t3, double alp);
+RcppExport SEXP _gofar_getKappaC0zv(SEXP XSEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP t3SEXP, SEXP alpSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -16,7 +16,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::uvec >::type t1(t1SEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type t2(t2SEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type t3(t3SEXP);
-    rcpp_result_gen = Rcpp::wrap(getKappaC0zv(X, t1, t2, t3));
+    Rcpp::traits::input_parameter< double >::type alp(alpSEXP);
+    rcpp_result_gen = Rcpp::wrap(getKappaC0zv(X, t1, t2, t3, alp));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -238,7 +239,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_gofar_getKappaC0zv", (DL_FUNC) &_gofar_getKappaC0zv, 4},
+    {"_gofar_getKappaC0zv", (DL_FUNC) &_gofar_getKappaC0zv, 5},
     {"_gofar_familyLinkinv3", (DL_FUNC) &_gofar_familyLinkinv3, 4},
     {"_gofar_absT", (DL_FUNC) &_gofar_absT, 1},
     {"_gofar_nzcount", (DL_FUNC) &_gofar_nzcount, 1},

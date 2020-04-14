@@ -15,6 +15,7 @@
 #' @param objI 1 or 0 convergence on the basis of objective function or not
 #' @param initmaxit maximum iteration for initialization problem
 #' @param initepsilon tolerence value for convergene in the initialization problem
+#' @param alp scaling factor corresponding to poisson outcomes
 #' @return a list of controling parameter.
 #' @export
 #' @examples
@@ -29,7 +30,7 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
                           spU = 0.5, spV = 0.5,
                           lamMaxFac = 1, lamMinFac = 1e-6,
                           initmaxit = 2000, initepsilon = 1e-6,
-                          equalphi = 1, objI = 1) {
+                          equalphi = 1, objI = 1, alp = 60) {
   list(
     lamMaxFac = lamMaxFac,
     lamMinFac = lamMinFac,
@@ -37,7 +38,7 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
     maxit = maxit, epsilon = epsilon,
     objI = objI, se1 = se1,
     initmaxit = initmaxit, initepsilon = initepsilon,
-    equalphi = equalphi
+    equalphi = equalphi, alp = alp
   )
 }
 
@@ -487,7 +488,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
 
   ## Initialization
-  kappaco <- getKappaC0(X0, familygroup)
+  kappaco <- getKappaC0(X0, familygroup, control$alp)
   ndev <- getNullDev(Yin, ofset, familygroup, naind)
   xx <- gcure_cpp_init2(Yin, X0, nrank,
     cindex = cIndex,
@@ -505,6 +506,8 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
   U0 <- xx$C[-cIndex, ] %*% V0 %*% diag(1 / D0, nrow = nkran, ncol = nkran)
   nrank <- nkran
 
+  # save(list = ls(), file = 'aditya.rda')
+  # stop('aditya')
 
   U <- U0
   V <- V0
@@ -532,12 +535,11 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
       wv = abs(V0[, k])^-control$gamma0
     )
     ## define ofset
-    C0 <- tcrossprod(tcrossprod(U0[, -k],
-                                diag(D0[-k],
-                                     nrow = nrank - 1)), V0[, -k])
+    C0 <- tcrossprod(tcrossprod(U0[, -k], diag(D0[-k], nrow = nrank - 1)),
+                     V0[, -k])
     ofset1 <- tcrossprod(X0[, -cIndex], t(C0))
     lambda.max <- get.lam.max2(Y, X, familygroup, ofset1)
-    kappaco <- getKappaC0(X0, familygroup)
+    kappaco <- getKappaC0(X0, familygroup, control$alp)
     ndev <- getNullDev(Y, ofset1, familygroup, naind)
     ## store the deviance of the test data
     dev <- matrix(NA, nfold, nlambda)
@@ -985,7 +987,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
   for (k in 1:nrank) { # desired rank extraction
     cat("Initializing unit-rank unit", k, "\n")
     ## extract unpelized unit rank and estimate and use it for weight construction:
-    kappaco <- getKappaC0(X0, familygroup)
+    kappaco <- getKappaC0(X0, familygroup,control$alp)
     ndev <- getNullDev(Yf2, ofset, familygroup, naind22)
 
 

@@ -9,14 +9,14 @@
 #' @useDynLib gofar
 #' @import magrittr
 #' @importFrom stats family gaussian binomial poisson
-getKappaC0 = function(X0,familygroup){
+getKappaC0 = function(X0,familygroup,alp){
   family <- list(gaussian(),binomial(),poisson())
   temp <- rep(0,length(family))
   svdX0d1 <- svd(X0)$d[1]
   cfamily <- unique(familygroup)
   for (j in cfamily)
     temp[j] <- switch(family[[j]]$family,'gaussian' = svdX0d1,
-                      'binomial' = svdX0d1/2,'poisson' = svdX0d1*10)
+                      'binomial' = svdX0d1/2,'poisson' = svdX0d1*alp)
   1*max(temp)
 }
 
