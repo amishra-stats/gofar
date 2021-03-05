@@ -927,7 +927,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #'  Mishra, A., Dey, D., Chen, K. (2019) \emph{ Generalized co-sparse factor regression, In prepration}
 gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
                     familygroup = NULL, cIndex = NULL, ofset = NULL,
-                    control = list(), nfold = 5, PATH = FALSE) {
+                    control = list(), nfold = 5, PATH = FALSE, weightU = NULL) {
   cat("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
@@ -1007,11 +1007,23 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     xx$V <- as.matrix(svdxc$v[, 1:nkran])
     xx$D <- svdxc$d[1:nkran] / sqrt(n)
     xx$U <- xx$C[-cIndex, ] %*% xx$V %*% diag(1 / xx$D, nrow = nkran, ncol = nkran)
+    
+    
+    if(is.null(weightU)){
+      initW <- list(
+        wu = abs(xx$U)^-control$gamma0,
+        wd = abs(xx$D)^-control$gamma0,
+        wv = abs(xx$V)^-control$gamma0
+      )
+    }
+    else{
     initW <- list(
-      wu = abs(xx$U)^-control$gamma0,
+      wu = abs(xx$U)^-weightU,
       wd = abs(xx$D)^-control$gamma0,
       wv = abs(xx$V)^-control$gamma0
     )
+    }
+    
     lambda.max <- get.lam.max2(Y, X, familygroup, ofset)
     cat(xx$D, '\n')
     cat("Cross validation:", k, "\n")
