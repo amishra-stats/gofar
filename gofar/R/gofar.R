@@ -762,7 +762,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
-#' @param weightU vector of inputs weights which will be combined with weights in the algorithm
+#' @param weightU vector of input weights which will be combined with weights in the algorithm
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
 #'   \item{Z}{estimated control variable coefficient matrix}
