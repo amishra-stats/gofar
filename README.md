@@ -135,8 +135,8 @@ In addition, user may require some additional R package for downloading, process
 ```
 # Model fit:
 control$epsilon <- 1e-7
-control$spU <- 50 / p
-control$spV <- 25 / q
+control$spU <- 50 / p # estimated percentage of non zero entries in U
+control$spV <- 25 / q # estimated percentage of non zero entries in V
 control$maxit <- 1000
 
 # Model fitting: GOFAR(S) (full data)
