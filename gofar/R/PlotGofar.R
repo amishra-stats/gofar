@@ -8,7 +8,7 @@
 #' library(RColorBrewer)
 
 
-plot.gofar.V <- function(fit.seq, Y){
+plot.gofar.V <- function(fit.seq, Y, cellwidth = 20){
   
   
   D <- fit.seq$D
@@ -24,7 +24,7 @@ plot.gofar.V <- function(fit.seq, Y){
                  , cluster_rows = F, cluster_cols = F,
                  breaks = seq(from = -max(abs(V)), to = max(abs(V)), length.out = 100),
                  color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100),
-                 cellwidth = 20, na_col = "grey")
+                 cellwidth = cellwidth, na_col = "grey")
   
 }  
 
@@ -45,7 +45,7 @@ plot.gofar.V <- function(fit.seq, Y){
 #' 
 #' library(randomcoloR)
 plot.gofar.U <- function(fit.seq, fit.seq.2 = NULL, X, complex = NULL,
-                         own.weights = NULL){
+                         own.weights = NULL, cellwidth = 5, cellheight = 108){
   
   D <- fit.seq$D
   order_D <- order(D, decreasing = T)
@@ -122,7 +122,7 @@ plot.gofar.U <- function(fit.seq, fit.seq.2 = NULL, X, complex = NULL,
   
   if(length(mycolors) == 0){
     pU <- pheatmap(t(Uplt), cluster_rows = F, cluster_cols = F, fontsize_row = 5,
-                   fontsize_col = 5, cellwidth = 5, cellheight = 108, 
+                   fontsize_col = 5, cellwidth = cellwidth, cellheight = cellheight, 
                    breaks = seq(from = -max(abs(tabU)), to = max(abs(tabU)), length.out = 100),
                    color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100),
                    fontsize = 4, na_col = "grey"
@@ -130,7 +130,7 @@ plot.gofar.U <- function(fit.seq, fit.seq.2 = NULL, X, complex = NULL,
   }
   else{
     pU <- pheatmap(t(Uplt), cluster_rows = F, cluster_cols = F, fontsize_row = 5,
-                   fontsize_col = 5, cellwidth = 5, cellheight = 108, 
+                   fontsize_col = 5, cellwidth = cellwidth, cellheight = cellheight, 
                    breaks = seq(from = -max(abs(tabU)), to = max(abs(tabU)), length.out = 100),
                    color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100),
                    annotation_col = annotdf, annotation_colors = mycolors,
@@ -146,7 +146,7 @@ plot.gofar.U <- function(fit.seq, fit.seq.2 = NULL, X, complex = NULL,
 # plot.gofar.U(fit.seq = fit.seq, X = t(X))
 # p <- ncol(X)
 # complex.X <- sample(1:10, p, replace = T)
-# plot.gofar.U(fit.seq = fit.seq, X = t(X), complex = complex.X)
+# plot.gofar.U(fit.seq = fit.seq, X = t(X), complex = complex.X, cellheight = 20)
 
 
 
