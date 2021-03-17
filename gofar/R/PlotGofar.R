@@ -83,7 +83,6 @@ plot.gofar.U <- function(fit.seq, fit.seq.2 = NULL, X, complex = NULL,
   Uplt <- tabU
   Uplt[which(Uplt==0)] <- NA
   
-  
   # create complex heatmap with additional information if provided in input  
   annotdf <- data.frame(row.names = rownames(Uplt))
   
