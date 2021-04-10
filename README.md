@@ -183,3 +183,9 @@ fit.eea.m <- gofar_p(Ym, X, nrank = rank.est, nlambda = nlam,
 
 
 
+
+## Queries
+Please contact authors and creators for any queries related to using the analysis 
+
+
+-   Aditya Mishra: [mailto](mailto:amishra@flatironinstitute.org)
