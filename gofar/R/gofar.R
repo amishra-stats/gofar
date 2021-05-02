@@ -273,6 +273,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' @param ofset offset matrix specified
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of fold for cross-validation
+#' @param weightU vector of input weights which will be combined with weights in the algorithm
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
 #' @return
 #'   \item{C}{estimated coefficient matrix; based on GIC}
@@ -445,7 +446,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' Mishra, A., Dey, D., Chen, K. (2019) \emph{ Generalized co-sparse factor regression, In prepration}
 gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
                        familygroup = NULL, cIndex = NULL, ofset = NULL,
-                       control = list(), nfold = 5, PATH = FALSE) {
+                       control = list(), nfold = 5, PATH = FALSE, weightU = NULL) {
   # Yt = Y;nrank =rank.est; nlambda = nlam; cIndex = NULL; ofset=NULL;  nfold = 5
   cat("Initializing...", "\n")
   n <- nrow(Yt)
@@ -529,11 +530,19 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
   fit.nlayer <- fit.nfold <- vector("list", nrank)
 
   for (k in 1:nrank) { # desired rank extraction
-    initW <- list(
-      wu = abs(U0[, k])^-control$gamma0,
-      wd = abs(D0[k])^-control$gamma0,
-      wv = abs(V0[, k])^-control$gamma0
-    )
+    if(is.null(weightU)){
+      initW <- list(
+        wu = abs(U0[, k])^-control$gamma0,
+        wd = abs(D0[k])^-control$gamma0,
+        wv = abs(V0[, k])^-control$gamma0
+      )
+    }
+    else{
+      initW <- list(
+        wu = abs(U0[, k])^-weightU,
+        wd = abs(D0[k])^-control$gamma0,
+        wv = abs(V0[, k])^-control$gamma0
+    }
     ## define ofset
     C0 <- tcrossprod(tcrossprod(U0[, -k], diag(D0[-k], nrow = nrank - 1)),
                      V0[, -k])
