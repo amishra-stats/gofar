@@ -178,7 +178,8 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
     k[abs(k) < 1e-6] <- 0
     b.ind <- vector()
     for (i in 1:qd$rank) {
-      b.ind[i] <- which(apply(x, 2, function(x, y) sum(abs(x - y)), k[, i]) < 1e-6)[1]
+      b.ind[i] <- which(apply(x, 2,
+                              function(x, y) sum(abs(x - y)), k[, i]) < 1e-6)[1]
     }
     return(list(ind = b.ind, vec = x[, b.ind]))
   }
@@ -1169,10 +1170,12 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     lamSel[k] <- fit.layer$lamKpath[l.mean, 1]
 
     if (D[k] == 0) {
-      U <- matrix(U[, 1:(k - 1)], ncol = k - 1)
-      V <- matrix(V[, 1:(k - 1)], ncol = k - 1)
-      D <- D[1:(k - 1)]
-      lamSel <- lamSel[1:(k - 1)]
+      if(k > 1){
+        U <- matrix(U[, 1:(k - 1)], ncol = k - 1)
+        V <- matrix(V[, 1:(k - 1)], ncol = k - 1)
+        D <- D[1:(k - 1)]
+        lamSel <- lamSel[1:(k - 1)]
+      }
       break
     }
 
