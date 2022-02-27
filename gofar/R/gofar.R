@@ -1,6 +1,7 @@
+#' Control parameters for the estimation procedure of GOFAR(S) and GOFAR(P)
+#'
 #' Default control parameters for Generalized co-sparse factor regresion
 #'
-#' Control parameters for GOFAR(S) and GOFAR(P)
 #'
 #' @param lamMaxFac a multiplier of calculated lambda_max
 #' @param lamMinFac a multiplier of determing lambda_min as a fraction of lambda_max
@@ -24,6 +25,8 @@
 #' control <- gofar_control()
 #' }
 #' @useDynLib gofar
+#' @references
+#' \emph{ Mishra, Aditya, Dipak K. Dey, Yong Chen, and Kun Chen. Generalized co-sparse factor regression. Computational Statistics & Data Analysis 157 (2021): 107127}
 gofar_control <- function(maxit = 5000, epsilon = 1e-6,
                           elnetAlpha = 0.95,
                           gamma0 = 1, se1 = 1,
@@ -44,7 +47,7 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
 
 
 
-#' Simulate data
+#' Simulate data for GOFAR
 #'
 #' Genertate random samples from a generalize sparse factor regression model
 #'
@@ -55,7 +58,7 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
 #' @param snr signal to noise ratio specified for gaussian type outcomes
 #' @param Xsigma covariance matrix for generating sample of X
 #' @param C0 Specified coefficient matrix with first row being intercept
-#' @param familygroup parameter defining correlated error
+#' @param familygroup index set of the type of multivariate outcomes: "1" for Gaussian, "2" for Bernoulli, "3" for Poisson outcomes
 #' @return
 #'   \item{Y}{Generated response matrix}
 #'   \item{X}{Generated predictor matrix}
@@ -152,7 +155,7 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
 #' V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
 #' #
 #' D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-#' or <- order(D, decreasing = T)
+#' or <- order(D, decreasing = TRUE)
 #' U <- U[, or]
 #' V <- V[, or]
 #' D <- D[or]
@@ -167,7 +170,12 @@ gofar_control <- function(maxit = 5000, epsilon = 1e-6,
 #' pHI <- c(rep(sim.sample$sigmaG, q1), rep(1, q2), rep(1, q3))
 #' X <- sim.sample$X[1:n, ]
 #' Y <- sim.sample$Y[1:n, ]
+#' # simulate_gofar <- list(Y = Y,X = X, U = U, D = D, V = V, n=n,
+#' # Xsigma = Xsigma, C0 = C0, familygroup = familygroup)
+#' # save(simulate_gofar, file = 'data/simulate_gofar.RData')
 #' }
+#' @references
+#' \emph{ Mishra, Aditya, Dipak K. Dey, Yong Chen, and Kun Chen. Generalized co-sparse factor regression. Computational Statistics & Data Analysis 157 (2021): 107127}
 gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
   ## finding basis along more number of columns of data vector
   basis.vec <- function(x) {
@@ -259,7 +267,6 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 
 
 
-
 #' Generalize Exclusive factor extraction via co-sparse unit-rank estimation (GOFAR(P)) using k-fold crossvalidation
 #'
 #' Divide and conquer approach for low-rank and sparse coefficent matrix estimation: Exclusive extraction
@@ -268,7 +275,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' @param X covariate matrix; when X = NULL, the fucntion performs unsupervised learning
 #' @param nrank an integer specifying the desired rank/number of factors
 #' @param nlambda number of lambda values to be used along each path
-#' @param family set of family [gaussian, bernoulli, possion]
+#' @param family set of family gaussian, bernoulli, possion
 #' @param familygroup index set of the type of multivariate outcomes: "1" for Gaussian, "2" for Bernoulli, "3" for Poisson outcomes
 #' @param cIndex control index, specifying index of control variable in the design matrix X
 #' @param ofset offset matrix specified
@@ -299,117 +306,17 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' @useDynLib gofar
 #' @examples
 #' \donttest{
-#' ## Model specification:
-#' SD <- 123
-#' set.seed(SD)
-#' n <- 200
-#' p <- 100
-#' pz <- 0
-#' # Model I in the paper
-#' # n <- 200; p <- 300; pz <- 0 ;           # Model II in the paper
-#' # q1 <- 0; q2 <- 30; q3 <- 0               # Similar response cases
-#' q1 <- 15
-#' q2 <- 15
-#' q3 <- 0 # mixed response cases
-#' nrank <- 3 # true rank
-#' rank.est <- 4 # estimated rank
-#' nlam <- 40 # number of tuning parameter
-#' s <- 1 # multiplying factor to singular value
-#' snr <- 0.25 # SNR for variance Gaussian error
-#' #
-#' q <- q1 + q2 + q3
-#' respFamily <- c("gaussian", "binomial", "poisson")
 #' family <- list(gaussian(), binomial(), poisson())
-#' familygroup <- c(rep(1, q1), rep(2, q2), rep(3, q3))
-#' cfamily <- unique(familygroup)
-#' nfamily <- length(cfamily)
-#' #
 #' control <- gofar_control()
-#' #
-#' #
-#' ## Generate data
-#' D <- rep(0, nrank)
-#' V <- matrix(0, ncol = nrank, nrow = q)
-#' U <- matrix(0, ncol = nrank, nrow = p)
-#' #
-#' U[, 1] <- c(sample(c(1, -1), 8, replace = TRUE), rep(0, p - 8))
-#' U[, 2] <- c(rep(0, 5), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 14))
-#' U[, 3] <- c(rep(0, 11), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 20))
-#' #
-#' if (nfamily == 1) {
-#'   # for similar type response type setting
-#'   V[, 1] <- c(rep(0, 8), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 16))
-#'   V[, 2] <- c(rep(0, 20), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 28))
-#'   V[, 3] <- c(
-#'     sample(c(1, -1), 5, replace = TRUE) * runif(5, 0.3, 1), rep(0, 23),
-#'     sample(c(1, -1), 2, replace = TRUE) * runif(2, 0.3, 1), rep(0, q - 30)
-#'   )
-#' } else {
-#'   # for mixed type response setting
-#'   # V is generated such that joint learning can be emphasised
-#'   V1 <- matrix(0, ncol = nrank, nrow = q / 2)
-#'   V1[, 1] <- c(sample(c(1, -1), 5, replace = TRUE), rep(0, q / 2 - 5))
-#'   V1[, 2] <- c(
-#'     rep(0, 3), V1[4, 1], -1 * V1[5, 1],
-#'     sample(c(1, -1), 3, replace = TRUE), rep(0, q / 2 - 8)
-#'   )
-#'   V1[, 3] <- c(
-#'     V1[1, 1], -1 * V1[2, 1], rep(0, 4),
-#'     V1[7, 2], -1 * V1[8, 2], sample(c(1, -1), 2, replace = TRUE),
-#'     rep(0, q / 2 - 10)
-#'   )
-#'   #
-#'   V2 <- matrix(0, ncol = nrank, nrow = q / 2)
-#'   V2[, 1] <- c(sample(c(1, -1), 5, replace = TRUE), rep(0, q / 2 - 5))
-#'   V2[, 2] <- c(
-#'     rep(0, 3), V2[4, 1], -1 * V2[5, 1],
-#'     sample(c(1, -1), 3, replace = TRUE), rep(0, q / 2 - 8)
-#'   )
-#'   V2[, 3] <- c(
-#'     V2[1, 1], -1 * V2[2, 1], rep(0, 4),
-#'     V2[7, 2], -1 * V2[8, 2],
-#'     sample(c(1, -1), 2, replace = TRUE), rep(0, q / 2 - 10)
-#'   )
-#'   #
-#'   V <- rbind(V1, V2)
-#' }
-#' U[, 1:3] <- apply(U[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' #
-#' D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-#' or <- order(D, decreasing = T)
-#' U <- U[, or]
-#' V <- V[, or]
-#' D <- D[or]
-#' C <- U %*% (D * t(V)) # simulated coefficient matrix
-#' intercept <- rep(0.5, q) # specifying intercept to the model:
-#' C0 <- rbind(intercept, C)
-#' #
-#' Xsigma <- 0.5^abs(outer(1:p, 1:p, FUN = "-"))
-#' # Simulated data
-#' sim.sample <- gofar_sim(U, D, V, n, Xsigma, C0, familygroup, snr)
-#' # Dispersion parameter
-#' pHI <- c(rep(sim.sample$sigmaG, q1), rep(1, q2), rep(1, q3))
-#' X <- sim.sample$X[1:n, ]
-#' Y <- sim.sample$Y[1:n, ]
+#' nlam <- 40 # number of tuning parameter
+#' SD <- 123
 #'
+#' # Simulated data for testing
 #'
-#'
-#' # Test data
-#' sim.sample <- gofar_sim(U, D, V, 1000, Xsigma, C0, familygroup, snr)
-#' Xt <- sim.sample$X
-#' Yt <- sim.sample$Y
-#' #
-#' crossprod(X %*% U)
-#' apply(X, 2, norm, "2")
-#' X0 <- cbind(1, X)
-#' #
+#' data('simulate_gofar')
+#' attach(simulate_gofar)
+#' q <- ncol(Y)
+#' p <- ncol(X)
 #' # Simulate data with 20% missing entries
 #' miss <- 0.20 # Proportion of entries missing
 #' t.ind <- sample.int(n * q, size = miss * n * q)
@@ -427,6 +334,7 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' # Model fitting: GOFAR(P) (full data)
 #' set.seed(SD)
 #' rank.est <- 5
+#'
 #' fit.eea <- gofar_p(Y, X,
 #'   nrank = rank.est, nlambda = nlam,
 #'   family = family, familygroup = familygroup,
@@ -436,19 +344,19 @@ gofar_sim <- function(U, D, V, n, Xsigma, C0, familygroup, snr) {
 #' # Model fitting: GOFAR(P) (missing data)
 #' set.seed(SD)
 #' rank.est <- 5
-#' fit.eea.m <- gofar_p(Ym, X,
-#'   nrank = rank.est, nlambda = nlam,
-#'   family = family, familygroup = familygroup,
-#'   control = control, nfold = 5
-#' )
+#' # fit.eea.m <- gofar_p(Ym, X,
+#' #   nrank = rank.est, nlambda = nlam,
+#' #   family = family, familygroup = familygroup,
+#' #   control = control, nfold = 5
+#' # )
 #' }
 #' @references
-#' Mishra, A., Dey, D., Chen, K. (2019) \emph{ Generalized co-sparse factor regression, In prepration}
+#' \emph{ Mishra, Aditya, Dipak K. Dey, Yong Chen, and Kun Chen. Generalized co-sparse factor regression. Computational Statistics & Data Analysis 157 (2021): 107127}
 gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
                        familygroup = NULL, cIndex = NULL, ofset = NULL,
                        control = list(), nfold = 5, PATH = FALSE) {
   # Yt = Y;nrank =rank.est; nlambda = nlam; cIndex = NULL; ofset=NULL;  nfold = 5
-  cat("Initializing...", "\n")
+  message("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
   q <- ncol(Yt)
@@ -552,7 +460,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
     fitT <- vector("list", nfold)
     for (ifold in 1:nfold) { # ifold=1
-      cat('Fold ', ifold, '\n')
+      message('Fold ', ifold, '\n')
       ind.test <- ind.nna[which(ID == ifold)]
       Yte <- Y
       Yte[-ind.test] <- NA
@@ -691,7 +599,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
     D[k] <- fit.layer$dkpath[l.mean, 1]
-    cat(D[k], '\n')
+    message(D[k], '\n')
     lamSel[k] <- fit.layer$lamKpath[l.mean, 1]
 
     Ck <- D[k] * tcrossprod(U[, k], V[, k])
@@ -714,7 +622,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
 
   ind <- D != 0
-  cat("Estimated rank =", sum(ind), "\n")
+  message("Estimated rank =", sum(ind), "\n")
   U <- matrix(U[, ind], ncol = sum(ind))
   V <- matrix(V[, ind], ncol = sum(ind))
   D <- D[ind]
@@ -759,7 +667,7 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' @param familygroup index set of the type of multivariate outcomes: "1" for Gaussian, "2" for Bernoulli, "3" for Poisson outcomes
 #' @param cIndex control index, specifying index of control variable in the design matrix X
 #' @param ofset offset matrix specified
-#' @param family set of family [gaussian, bernoulli, possion]
+#' @param family set of family gaussian, bernoulli, possion
 #' @param control a list of internal parameters controlling the model fitting
 #' @param nfold number of folds in k-fold crossvalidation
 #' @param PATH TRUE/FALSE for generating solution path of sequential estimate after cross-validation step
@@ -777,116 +685,17 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' @useDynLib gofar
 #' @examples
 #' \donttest{
-#' ## Model specification:
-#' SD <- 123
-#' set.seed(SD)
-#' n <- 200
-#' p <- 100
-#' pz <- 0
-#' # Model I in the paper
-#' # n <- 200; p <- 300; pz <- 0 ;           # Model II in the paper
-#' # q1 <- 0; q2 <- 30; q3 <- 0               # Similar response cases
-#' q1 <- 15
-#' q2 <- 15
-#' q3 <- 0 # mixed response cases
-#' nrank <- 3 # true rank
-#' rank.est <- 4 # estimated rank
-#' nlam <- 40 # number of tuning parameter
-#' s <- 1 # multiplying factor to singular value
-#' snr <- 0.25 # SNR for variance Gaussian error
-#' #
-#' q <- q1 + q2 + q3
-#' respFamily <- c("gaussian", "binomial", "poisson")
 #' family <- list(gaussian(), binomial(), poisson())
-#' familygroup <- c(rep(1, q1), rep(2, q2), rep(3, q3))
-#' cfamily <- unique(familygroup)
-#' nfamily <- length(cfamily)
-#' #
 #' control <- gofar_control()
-#' #
-#' #
-#' ## Generate data
-#' D <- rep(0, nrank)
-#' V <- matrix(0, ncol = nrank, nrow = q)
-#' U <- matrix(0, ncol = nrank, nrow = p)
-#' #
-#' U[, 1] <- c(sample(c(1, -1), 8, replace = TRUE), rep(0, p - 8))
-#' U[, 2] <- c(rep(0, 5), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 14))
-#' U[, 3] <- c(rep(0, 11), sample(c(1, -1), 9, replace = TRUE), rep(0, p - 20))
-#' #
-#' if (nfamily == 1) {
-#'   # for similar type response type setting
-#'   V[, 1] <- c(rep(0, 8), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 16))
-#'   V[, 2] <- c(rep(0, 20), sample(c(1, -1), 8,
-#'     replace =
-#'       TRUE
-#'   ) * runif(8, 0.3, 1), rep(0, q - 28))
-#'   V[, 3] <- c(
-#'     sample(c(1, -1), 5, replace = TRUE) * runif(5, 0.3, 1), rep(0, 23),
-#'     sample(c(1, -1), 2, replace = TRUE) * runif(2, 0.3, 1), rep(0, q - 30)
-#'   )
-#' } else {
-#'   # for mixed type response setting
-#'   # V is generated such that joint learning can be emphasised
-#'   V1 <- matrix(0, ncol = nrank, nrow = q / 2)
-#'   V1[, 1] <- c(sample(c(1, -1), 5, replace = TRUE), rep(0, q / 2 - 5))
-#'   V1[, 2] <- c(
-#'     rep(0, 3), V1[4, 1], -1 * V1[5, 1],
-#'     sample(c(1, -1), 3, replace = TRUE), rep(0, q / 2 - 8)
-#'   )
-#'   V1[, 3] <- c(
-#'     V1[1, 1], -1 * V1[2, 1], rep(0, 4),
-#'     V1[7, 2], -1 * V1[8, 2], sample(c(1, -1), 2, replace = TRUE),
-#'     rep(0, q / 2 - 10)
-#'   )
-#'   #
-#'   V2 <- matrix(0, ncol = nrank, nrow = q / 2)
-#'   V2[, 1] <- c(sample(c(1, -1), 5, replace = TRUE), rep(0, q / 2 - 5))
-#'   V2[, 2] <- c(
-#'     rep(0, 3), V2[4, 1], -1 * V2[5, 1],
-#'     sample(c(1, -1), 3, replace = TRUE), rep(0, q / 2 - 8)
-#'   )
-#'   V2[, 3] <- c(
-#'     V2[1, 1], -1 * V2[2, 1], rep(0, 4),
-#'     V2[7, 2], -1 * V2[8, 2],
-#'     sample(c(1, -1), 2, replace = TRUE), rep(0, q / 2 - 10)
-#'   )
-#'   #
-#'   V <- rbind(V1, V2)
-#' }
-#' U[, 1:3] <- apply(U[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
-#' #
-#' D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-#' or <- order(D, decreasing = T)
-#' U <- U[, or]
-#' V <- V[, or]
-#' D <- D[or]
-#' C <- U %*% (D * t(V)) # simulated coefficient matrix
-#' intercept <- rep(0.5, q) # specifying intercept to the model:
-#' C0 <- rbind(intercept, C)
-#' #
-#' Xsigma <- 0.5^abs(outer(1:p, 1:p, FUN = "-"))
-#' # Simulated data
-#' sim.sample <- gofar_sim(U, D, V, n, Xsigma, C0, familygroup, snr)
-#' # Dispersion parameter
-#' pHI <- c(rep(sim.sample$sigmaG, q1), rep(1, q2), rep(1, q3))
-#' X <- sim.sample$X[1:n, ]
-#' Y <- sim.sample$Y[1:n, ]
+#' nlam <- 40 # number of tuning parameter
+#' SD <- 123
 #'
+#' # Simulated data for testing
 #'
-#'
-#' # Test data
-#' sim.sample <- gofar_sim(U, D, V, 1000, Xsigma, C0, familygroup, snr)
-#' Xt <- sim.sample$X
-#' Yt <- sim.sample$Y
-#' #
-#' crossprod(X %*% U)
-#' apply(X, 2, norm, "2")
-#' X0 <- cbind(1, X)
+#' data('simulate_gofar')
+#' attach(simulate_gofar)
+#' q <- ncol(Y)
+#' p <- ncol(X)
 #' #
 #' # Simulate data with 20% missing entries
 #' miss <- 0.20 # Proportion of entries missing
@@ -918,18 +727,18 @@ gofar_p <- function(Yt, X, nrank = 3, nlambda = 40, family,
 #' # Model fitting: GOFAR(S) (missing data)
 #' set.seed(SD)
 #' rank.est <- 5
-#' fit.seq.m <- gofar_s(Ym, X,
-#'   nrank = rank.est, family = family,
-#'   nlambda = nlam, familygroup = familygroup,
-#'   control = control, nfold = 5
-#' )
+#' # fit.seq.m <- gofar_s(Ym, X,
+#' #   nrank = rank.est, family = family,
+#' #   nlambda = nlam, familygroup = familygroup,
+#' #   control = control, nfold = 5
+#' # )
 #' }
 #' @references
-#'  Mishra, A., Dey, D., Chen, K. (2019) \emph{ Generalized co-sparse factor regression, In prepration}
+#' \emph{ Mishra, Aditya, Dipak K. Dey, Yong Chen, and Kun Chen. Generalized co-sparse factor regression. Computational Statistics & Data Analysis 157 (2021): 107127}
 gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
                     familygroup = NULL, cIndex = NULL, ofset = NULL,
                     control = list(), nfold = 5, PATH = FALSE) {
-  cat("Initializing...", "\n")
+  message("Initializing...", "\n")
   n <- nrow(Yt)
   p <- ncol(X)
   q <- ncol(Yt)
@@ -986,7 +795,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
   # Implementation of k-fold cross validation:
   for (k in 1:nrank) { # desired rank extraction
-    cat("Initializing unit-rank unit", k, "\n")
+    message("Initializing unit-rank unit", k, "\n")
     ## extract unpelized unit rank and estimate and use it for weight construction:
     kappaco <- getKappaC0(X0, familygroup,control$alp)
     ndev <- getNullDev(Yf2, ofset, familygroup, naind22)
@@ -1014,8 +823,8 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
       wv = abs(xx$V)^-control$gamma0
     )
     lambda.max <- get.lam.max2(Y, X, familygroup, ofset)
-    cat(xx$D, '\n')
-    cat("Cross validation:", k, "\n")
+    message(xx$D, '\n')
+    message("Cross validation:", k, "\n")
     # save(list=ls(),file = 'aditya1.rda')
 
     ## store the deviance of the test data
@@ -1027,7 +836,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
 
     fitT <- vector("list", nfold)
     for (ifold in 1:nfold) { # ifold=1
-      cat('Fold ', ifold, '\n')
+      message('Fold ', ifold, '\n')
       ind.test <- ind.nna[which(ID == ifold)]
       Yte <- Y
       Yte[-ind.test] <- NA
@@ -1166,7 +975,7 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     U[, k] <- fit.layer$ukpath[, l.mean]
     V[, k] <- fit.layer$vkpath[, l.mean]
     D[k] <- fit.layer$dkpath[l.mean, 1]
-    cat(D[k], '\n')
+    message(D[k], '\n')
     lamSel[k] <- fit.layer$lamKpath[l.mean, 1]
 
     if (D[k] == 0) {
@@ -1189,9 +998,9 @@ gofar_s <- function(Yt, X, nrank = 3, nlambda = 40, family,
     ofset <- ofset + crossprod(t(X0[, -cIndex]), Ck) # crossprod(t(X), Ck)
   }
 
-  cat("Estimated rank =", sum(D != 0), "\n")
+  message("Estimated rank =", sum(D != 0), "\n")
   if (sum(D != 0) == nrank) {
-    cat("Increase nrank value!")
+    message("Increase nrank value!")
   }
   ft1 <- list(fit = fit.nlayer, C = U %*% (D * t(V)), Z = Z, Phi = PHI,
     U = U, V = V, D = D,

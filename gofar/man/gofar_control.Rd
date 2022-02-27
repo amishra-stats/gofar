@@ -2,12 +2,24 @@
 % Please edit documentation in R/gofar.R
 \name{gofar_control}
 \alias{gofar_control}
-\title{Default control parameters for Generalized co-sparse factor regresion}
+\title{Control parameters for the estimation procedure of GOFAR(S) and GOFAR(P)}
 \usage{
-gofar_control(maxit = 5000, epsilon = 1e-06, elnetAlpha = 0.95,
-  gamma0 = 1, se1 = 1, spU = 0.5, spV = 0.5, lamMaxFac = 1,
-  lamMinFac = 1e-06, initmaxit = 2000, initepsilon = 1e-06,
-  equalphi = 1, objI = 1, alp = 60)
+gofar_control(
+  maxit = 5000,
+  epsilon = 1e-06,
+  elnetAlpha = 0.95,
+  gamma0 = 1,
+  se1 = 1,
+  spU = 0.5,
+  spV = 0.5,
+  lamMaxFac = 1,
+  lamMinFac = 1e-06,
+  initmaxit = 2000,
+  initepsilon = 1e-06,
+  equalphi = 1,
+  objI = 1,
+  alp = 60
+)
 }
 \arguments{
 \item{maxit}{maximum iteration for each sequential steps}
@@ -42,11 +54,14 @@ gofar_control(maxit = 5000, epsilon = 1e-06, elnetAlpha = 0.95,
 a list of controling parameter.
 }
 \description{
-Control parameters for GOFAR(S) and GOFAR(P)
+Default control parameters for Generalized co-sparse factor regresion
 }
 \examples{
 \donttest{
 # control variable for GOFAR(S) and GOFAR(P)
 control <- gofar_control()
 }
+}
+\references{
+\emph{ Mishra, Aditya, Dipak K. Dey, Yong Chen, and Kun Chen. Generalized co-sparse factor regression. Computational Statistics & Data Analysis 157 (2021): 107127}
 }

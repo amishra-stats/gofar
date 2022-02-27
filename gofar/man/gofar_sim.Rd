@@ -2,7 +2,7 @@
 % Please edit documentation in R/gofar.R
 \name{gofar_sim}
 \alias{gofar_sim}
-\title{Simulate data}
+\title{Simulate data for GOFAR}
 \usage{
 gofar_sim(U, D, V, n, Xsigma, C0, familygroup, snr)
 }
@@ -19,14 +19,14 @@ gofar_sim(U, D, V, n, Xsigma, C0, familygroup, snr)
 
 \item{C0}{Specified coefficient matrix with first row being intercept}
 
-\item{familygroup}{parameter defining correlated error}
+\item{familygroup}{index set of the type of multivariate outcomes: "1" for Gaussian, "2" for Bernoulli, "3" for Poisson outcomes}
 
 \item{snr}{signal to noise ratio specified for gaussian type outcomes}
 }
 \value{
 \item{Y}{Generated response matrix}
-  \item{X}{Generated predictor matrix}
-  \item{sigmaG}{standard deviation for gaussian error}
+\item{X}{Generated predictor matrix}
+\item{sigmaG}{standard deviation for gaussian error}
 }
 \description{
 Genertate random samples from a generalize sparse factor regression model
@@ -117,7 +117,7 @@ U[, 1:3] <- apply(U[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
 V[, 1:3] <- apply(V[, 1:3], 2, function(x) x / sqrt(sum(x^2)))
 #
 D <- s * c(4, 6, 5) # signal strength varries as per the value of s
-or <- order(D, decreasing = T)
+or <- order(D, decreasing = TRUE)
 U <- U[, or]
 V <- V[, or]
 D <- D[or]
@@ -132,5 +132,11 @@ sim.sample <- gofar_sim(U, D, V, n, Xsigma, C0, familygroup, snr)
 pHI <- c(rep(sim.sample$sigmaG, q1), rep(1, q2), rep(1, q3))
 X <- sim.sample$X[1:n, ]
 Y <- sim.sample$Y[1:n, ]
+# simulate_gofar <- list(Y = Y,X = X, U = U, D = D, V = V, n=n,
+# Xsigma = Xsigma, C0 = C0, familygroup = familygroup)
+# save(simulate_gofar, file = 'data/simulate_gofar.RData')
 }
+}
+\references{
+\emph{ Mishra, Aditya, Dipak K. Dey, Yong Chen, and Kun Chen. Generalized co-sparse factor regression. Computational Statistics & Data Analysis 157 (2021): 107127}
 }
