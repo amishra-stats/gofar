@@ -183,3 +183,24 @@ fit.eea.m <- gofar_p(Ym, X, nrank = rank.est, nlambda = nlam,
 
 
 
+
+
+
+Community Guidelines
+--------------------
+
+1.  Contributions and suggestions to the software are always welcome.
+    Please consult the [contribution guidelines](https://github.com/mingzehuang/latentcor/blob/master/CONTRIBUTING.md) prior
+    to submitting a pull request.
+2.  Report issues or problems with the software using github’s [issue
+    tracker](https://github.com/amishra-stats/gofar/issues).
+3.  Contributors must adhere to the [Code of Conduct](https://github.com/amishra-stats/gofar/blob/master/CODE_OF_CONDUCT.md).
+
+
+## Inquiries
+
+You can also contact us via email
+
+- [Aditya Mishra](mailto:amishra@flatironinstitute.org)
+- [Kun Chen](mailto:kun.chen@uconn.edu)
+
