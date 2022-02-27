@@ -2,7 +2,7 @@ Package: gofar
 Type: Package
 Title: Generalized Co-Sparse Factor Regression 
 Version: 0.1
-Date: 2022-02-17
+Date: 2022-02-26
 Authors@R: 
     c(person(given = 'Aditya',
              family = 'Mishra',
